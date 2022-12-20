@@ -1,53 +1,6 @@
 # Bobby Craft
 # Date: 6-3-22
 # Description: Intro to Comp Sci II: Module 10 Project
-#
-# Write a class named GessGame for playing an abstract board game 
-# called Gess. You can see the rules [here](https://www.chessvariants.com/crossover.dir/gess.html).  
-# Note that when a piece's move causes it to overlap stones, any stones covered by the **footprint**
-#  get removed, not just those covered by one of the piece's stones.  It is not legal to make a move 
-# that leaves you without a ring.  It's possible for a player to have more than one ring.  A player 
-# doesn't lose until they have no remaining rings.
-
-# Locations on the board will be specified using columns labeled a-t and rows labeled 1-20, with 
-# row 1 being the Black side and row 20 the White side.  The actual board is only columns b-s and 
-# rows 2-19.  The center of the piece being moved must stay within those boundaries.  An edge of 
-# the piece may go into columns a or t, or rows 1 or 20, but any pieces there are removed at the 
-# end of the move.  Black goes first.
-
-# There's an online implementation [here](https://gess.h3mm3.com/) you can try, but it's not 100% 
-# consistent with the rules. In the case of any discrepancy between the online game and the rules, 
-# you should comply with the rules (you can also ask us for clarification of course).  One example 
-# is that the online game lets you make moves that leave you without a ring, which isn't allowed 
-# (if a player wants to end the game, they can just resign).  Another example is that the online 
-# game lets you choose a piece whose center is off the board (in columns a or t, or in rows 1 or 20), 
-# which isn't allowed.
-
-# You're not required to print the board, but you will probably find it very useful for testing 
-# purposes.
-
-# Your GessGame class must include the following:
-# * An init method that initializes any data members.
-# * A method called get_game_state that takes no parameters and returns 'UNFINISHED', 'BLACK_WON' 
-# or 'WHITE_WON'.
-# * A method called resign_game that lets the current player concede the game, giving the other 
-# player the win.
-# * A method called make_move that takes two parameters - strings that represent the center square 
-# of the piece being moved and the desired new location of the center square.  For example, make_move
-# ('b6', 'e9').  If the indicated move is not legal for the current player, or if the game has already 
-# been won, then it should just return False.  Otherwise it should make the indicated move, remove any 
-# captured stones, update the game state if necessary, update whose turn it is, and return True.
-
-# Feel free to add whatever other classes, methods, or data members you want.  All data members must 
-# be **private**.
-
-# # Here's a very simple example of how the class could be used:
-# ```
-# game = GessGame()
-# move_result = game.make_move('m3', 'm6')
-# game.make_move('e14', 'g14')
-# state = game.get_game_state()
-# game.resign_game()
 
 class GoBoard:
     def __init__(self) -> None:
@@ -124,9 +77,7 @@ class GessGame:
 
 
     def get_game_board(self):
-        """
-        Returns current game board state 
-        """
+        """Returns current game board state"""
         return self._board
 
 
@@ -138,16 +89,13 @@ class GessGame:
     
     
     def get_wht_ring_counter(self):
-        """
-        Returns num of remaining white rings 
-        """
+        """Returns num of remaining white rings"""
         return self._wht_rings_left
 
 
     def get_game_stone_count(self):
-        """
-        Remaining 'BLK' and 'WHT'stones 
-        """
+        """Remaining 'BLK' and 'WHT'stones"""
+        
         print("Total black stones left:", self._blk_stones_left)
         print("Total white stones left:", self._wht_stones_left)
         return
@@ -370,6 +318,7 @@ class GessGame:
                 
         return self.get_game_board()
     
+    
     def remove_captured_stones_diag(self, fr_row, to_row, fr_col, to_col, 
         row, col):
         """
@@ -548,7 +497,7 @@ class GessGame:
             # movement not vertical
             return False
         
-
+        
     def move_horiz(self, fr_row, fr_col, to_row, to_col, board, start_col, window):
         """
         Takes in strings representing coordinates of starting
@@ -697,7 +646,8 @@ class GessGame:
         piece either SW, SE, NW, or NE if move is valid.
         """
         # if stone in SW, SE, NE, or NW position
-        if board[fr_row-1][fr_col-1] or board[fr_row-1][fr_col+1] or board[fr_row+1][fr_col+1] or board[fr_row+1][fr_col-1] != '':
+        if board[fr_row-1][fr_col-1] or board[fr_row-1][fr_col+1] or board[fr_row+1][fr_col+1] or \
+           board[fr_row+1][fr_col-1] != '':
                         
             # valid move if within range          
             if abs(to_col - fr_col) == abs(to_row - fr_row):
@@ -730,8 +680,9 @@ class GessGame:
                         i += 1
                         j -= 1
                          
-                    if board[dir['start_row']][dir['start_col']] or board[dir['r_1']][dir['c_1']] or board[dir['r_2']][dir['c_2']] or \
-                        board[dir['r_4']][dir['c_4']] or board[dir['r_5']][dir['c_5']] != '':
+                    if board[dir['start_row']][dir['start_col']] or board[dir['r_1']][dir['c_1']] or \ 
+                       board[dir['r_2']][dir['c_2']] or board[dir['r_4']][dir['c_4']] or \
+                       board[dir['r_5']][dir['c_5']] != '':
                         self.remove_captured_stones_diag(fr_row, to_row, fr_col, to_col, i,j)
                         self.update_board(fr_row, fr_col, dir['final_row'], dir['final_col'])
                         return True
@@ -956,9 +907,7 @@ class GessGame:
             self._prev_move = self._player_to_move
             self._player_to_move = self._other_player
             self._other_player = self._prev_move
-
-            return True
-        
+            return True       
         return False
 
 
@@ -979,7 +928,6 @@ class GessGame:
                 self._current_state = 'BLACK WON'
                 print(self._current_state)
                 return True
-
         return False
 
 
@@ -989,50 +937,3 @@ class GessGame:
         """
         for i in self._board:
             print(i)
-
-
-game = GessGame()
-game.set_game_board()
-# game.print_board()
-# game.make_move('c6', 'c9') # vert blk'
-# game.make_move('c15', 'c12') # vert wht'
-# game.make_move('c9','c11') # vert blk'
-# game.make_move('f15', 'f12')
-# game.check_if_players_turn('f15', 'f12')
-# game.make_move('b11', 'e11')
-# game.make_move('j15', 'g12')
-# game.make_move('c3', 'd3')
-# game.make_move('g12', 'd9')
-# game.make_move('g6', 'd9')
-# game.make_move('f18', 'e17')
-# game.make_move('r3', 'r5')
-# game.make_move('e17', 'n8')
-# game.make_move('k6', 'l7')
-# game.make_move('o8', 'n8')
-# game.make_move('r6', 'r5')
-# game.make_move('i18', 'i8')
-# game.make_move('r5', 'r13')
-# game.make_move('i8', 'e8')
-# game.make_move('s12', 'r13')
-# game.make_move('e8', 'd9')
-# game.make_move('d3', 'd7')
-# game.make_move('d10', 'e9')
-# game.make_move('i3', 'i18')
-# game.make_move('n8', 'n5')
-# game.make_move('r3', 's3')
-# game.get_game_stone_count()
-game.print_board()
-
-# print(game.get_blk_ring_counter())
-# print(game.get_wht_ring_counter())
-
-
-
-
-
-
-
-move_result = game.make_move('m3', 'm6')
-game.make_move('e14', 'g14')
-state = game.get_game_state()
-# game.player_resign()
