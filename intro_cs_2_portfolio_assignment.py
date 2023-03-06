@@ -2,7 +2,9 @@
 # Date: 6-3-22
 # Description: Intro to Comp Sci II: Module 10 Project
 
+
 class GoBoard:
+    
     def __init__(self) -> None:
         """
         Gess gameboard class. Initializes an empty 
@@ -24,14 +26,14 @@ class GoBoard:
                               'h17', 'i17', 'j17', 'k17', 'l17', 'm17', 'n17', 
                               'p17', 'r17', 'c14', 'f14', 'i14', 'l14', 'o14', 
                               'r14']
-
+                              
 
 class GessGame:
     """
     Includes methods for starting a new game; 
     making moves; tracking game state; resigning players
     """
-
+    
     def __init__(self):
         """
         Creates new Gess game object; Initializes empty game 
@@ -56,28 +58,24 @@ class GessGame:
     
     def set_game_board(self):
         """
-        Sets-up go board where the keys are the square 
-        coordinates and the values are either the stone 
-        ('BLK' or 'WHT') occupying the square or an empty 
-        square('').
+        Sets up the Go board with stones assigned to their respective squares. 
+        Returns the resulting board.
         """
         self._board = GoBoard()._game_board
 
-        for stone in GoBoard()._black_stones:
-            col = self._alpha_to[stone[0].lower()]  # positions to int
+        for stone, color in [(s, 'B') for s in GoBoard()._black_stones] + \
+            [(s, 'W') for s in GoBoard()._white_stones]:
+            col = self._alpha_to[stone[0].lower()]  # convert position to int
             row = int(stone[1:]) - 1
-            self._board[row][col] = 'B'  # assign blk stone to square
-
-        for stone in GoBoard()._white_stones:
-            col_w = self._alpha_to[stone[0]]  # postions to int
-            row_w = int(stone[1:]) - 1
-            self._board[row_w][col_w] = 'W'  # assign wht stone to square
+            self._board[row][col] = color  # assign stone color to square
 
         return self._board
 
 
     def get_game_board(self):
-        """Returns current game board state"""
+        """
+        Returns current game board state 
+        """
         return self._board
 
 
@@ -89,13 +87,16 @@ class GessGame:
     
     
     def get_wht_ring_counter(self):
-        """Returns num of remaining white rings"""
+        """
+        Returns num of remaining white rings 
+        """
         return self._wht_rings_left
 
 
     def get_game_stone_count(self):
-        """Remaining 'BLK' and 'WHT'stones"""
-        
+        """
+        Remaining 'BLK' and 'WHT'stones 
+        """
         print("Total black stones left:", self._blk_stones_left)
         print("Total white stones left:", self._wht_stones_left)
         return
@@ -128,76 +129,50 @@ class GessGame:
         game 3x3 footprint
         """
         board = self.get_game_board()
-
-        self._ftprint[1][1] = board[fr_row][fr_col]
-        self._ftprint[2][1] = board[fr_row + 1][fr_col]
-        self._ftprint[0][1] = board[fr_row - 1][fr_col]
-        self._ftprint[1][2] = board[fr_row][fr_col + 1]
-        self._ftprint[1][0] = board[fr_row][fr_col - 1]
-        self._ftprint[2][2] = board[fr_row + 1][fr_col + 1]
-        self._ftprint[0][2] = board[fr_row - 1][fr_col + 1]
-        self._ftprint[2][0] = board[fr_row + 1][fr_col - 1]
-        self._ftprint[0][0] = board[fr_row - 1][fr_col - 1]
+        offsets = [-1, 0, 1]
+        for i in offsets:
+            for j in offsets:
+                self._ftprint[i+1][j+1] = board[fr_row+i][fr_col+j]
 
         return self._ftprint
 
 
-    def update_fr_position(self,fr_row, fr_col, board):
+    def update_fr_position(self, fr_row, fr_col, board):
         """
-        Empties ('') orign squares covered 
-        by 3x3 piece to prep for move.  
+        Empties the origin squares covered by the 3x3 piece to prepare for the move.  
         """
-
-        board[fr_row][fr_col] = ''
-        board[fr_row-1][fr_col] = ''
-        board[fr_row+1][fr_col] = ''
-        board[fr_row][fr_col-1] = ''
-        board[fr_row-1][fr_col-1] = ''
-        board[fr_row+1][fr_col-1] = ''
-        board[fr_row-1][fr_col+1] = ''
-        board[fr_row][fr_col+1] = ''
-        board[fr_row+1][fr_col+1] = ''
+        positions = [(fr_row+i, fr_col+j) for i in [-1, 0, 1] for j in [-1, 0, 1]]
+        for i, j in positions:
+            board[i][j] = ''
 
 
-    def update_to_position(self,to_row, to_col, board, ftprint):
+    def update_to_position(self, to_row, to_col, board, ftprint):
         """
-        Updates board destination squares after 3x3 
-        footprint moves. Captures any stones occupying
-        destination squares.
+        Updates the board destination squares after moving the 3x3 
+        footprint. Captures any stones occupying the destination 
+        squares.
         """
-
-        board[to_row][to_col] = ftprint[1][1]
-        board[to_row-1][to_col] = ftprint[0][1]
-        board[to_row+1][to_col] = ftprint[2][1]
-        board[to_row][to_col-1] = ftprint[1][0]
-        board[to_row-1][to_col-1] = ftprint[0][0]
-        board[to_row+1][to_col-1] = ftprint[2][0]
-        board[to_row-1][to_col+1] = ftprint[0][2]
-        board[to_row][to_col+1] = ftprint[1][2]
-        board[to_row+1][to_col+1] = ftprint[2][2]
+        for i in range(3):
+            for j in range(3):
+                board[to_row-1+i][to_col-1+j] = ftprint[i][j]
 
 
     def update_board(self,fr_row, fr_col, to_row, to_col):
         """
-        Updates board after moving piece.  As soon as the footprint 
-        overlaps other stones (of either color), movement stops 
-        and all stones that were overlapped are removed permanently 
-        from the game. 
+        Updates the game board after moving a piece. Removes any stones 
+        overlapped by the 3x3 footprint of the piece, and stops movement 
+        as soon as overlap occurs. 
         """
 
         self.update_fr_position(fr_row, fr_col, self._board)
-        self.update_to_position(to_row, to_col, self._board, 
-        self.get_ftprint()) 
-
+        self.update_to_position(to_row, to_col, self._board, self.get_ftprint()) 
         return self._board
 
 
     def check_if_players_turn(self, fr_space, to_space):
         """
-        Takes in strings representing the location to move from and 
-        the location to move to.  Checks if move is allowed and it's
-        current player's turn to move. If so, returns True, otherwise 
-        False.
+       Determine if the current player can legally make the given move. Returns 
+       True if valid and current player's turn, else False.
         """
         if self.make_move(fr_space, to_space): # if move legal
             if self._player_to_move == self._prev_move:
@@ -209,116 +184,101 @@ class GessGame:
 
     def is_piece_legal(self):
         """
-        Checks if piece legal. If squares surrounding 
-        center of 3x3 matix empty or matrix contains other 
-        player's stone, return False. Otherwise piece is 
-        legal, return True.
+        Check if a piece is legal by examining the 3x3 matrix centered on it. An 
+        illegal piece contains the other player's stone or no stones belonging to 
+        the current player.
         """
-        legal = False
 
-        # if other player's stone at center, piece is invalid  
         if self.get_ftprint()[1][1] == self._other_player:
             return False
 
-        # otherwise, check squares surrounding center
-        for i in range(0, 3):
-            for j in range(0,3):          
-                # skip, only check surrounding squares
-                if i == 1 and j == 1:
-                    continue
-                # invalid: if other players's stone found
-                if self.get_ftprint()[i][j] == self._other_player:
-                    return False
-                # valid: if only current player's stone found
-                if self.get_ftprint()[i][j] == self._player_to_move:
-                    legal = True
-        # invalid: if no current player's stones found
-        return legal       
+        # Check squares surrounding center
+        for i, j in [(i, j) for i in range(3) for j in range(3) if (i, j) != (1, 1)]: 
+            # Invalid: if other player's stone is found
+            if self.get_ftprint()[i][j] == self._other_player:
+                return False
+
+            # Valid: if only current player's stone is found
+            if self.get_ftprint()[i][j] == self._player_to_move:
+                return True
+
+        # Invalid: if no current player's stones are found
+        return False
             
 
     def is_move_legal(self, fr_row, to_row, fr_col, to_col):
         """
-        Takes in strings representing starting location 
-        and destination. Returns True if valid move, 
-        False otherwise.
+        Check if a move from (fr_row, fr_col) to (to_row, to_col) is legal.
+        Return True if the move is valid, False otherwise.
         """
-        # don't move if piece invalid
-        if not self.is_piece_legal(): 
+        
+        if not self.is_piece_legal() or (to_row, to_col) == (fr_row, fr_col):
+            return False 
+
+        # Check if destination square is out-of-bounds
+        if not 1 <= to_row <= 18 or not 1 <= to_col <= 18:
             return False
 
-        # destination square equals starting square
-        if to_row == fr_row and to_col == fr_col:
+        # Check if starting square is out-of-bounds
+        if not 1 <= fr_row <= 18 or not 1 <= fr_col <= 18:
             return False
 
-        # destination square is out-of-bounds
-        if 18 < to_row < 1 or 18 < to_col < 1:
-            return False
-
-        # starting square is out-of-bounds
-        if 18 < fr_row < 1 or 18 < fr_col < 1:
-            return False    
-         
         return True
-    
+
 
     def remove_captured_stones_vert(self, start_row, beg_row, end_row, fr_col):
         """
         Removes any overlapped stones (BLK or WHT)
         in path of piece movement (N or S)
         """
-        
+
+        board = self.get_game_board()
+        stone_count = {'B': self._blk_stones_left, 'W': self._wht_stones_left}
+
         for row in range(beg_row, end_row):
-            for col in range(fr_col-1,fr_col+2):
-            
-                if row == 0 or row == 19:
-                    if self.get_game_board()[start_row][col] == 'B':
-                        self._blk_stones_left -= 1
-                    if self.get_game_board()[start_row][col] == 'W':
-                        self._wht_stones_left -= 1
+            for col in range(fr_col-1, fr_col+2):
+                stone = board[row][col]
+                if stone in stone_count:
+                    stone_count[stone] -= (row == start_row or row in (0, 19))
+                    board[row][col] = ''
 
-                if self.get_game_board()[row][col] == 'B':
-                    self._blk_stones_left -= 1
-                    self.get_game_board()[row][col] = ''
-                
-                if self.get_game_board()[row][col] == 'W':
-                    self._wht_stones_left -= 1
-                    self.get_game_board()[row][col] = ''
-                
-                else:
-                    continue
-                
-        return self.get_game_board()
+        return board
 
-    
+
     def remove_captured_stones_horiz(self, start_col, row, beg_col, end_col):
         """
         Removes any overlapped stones (BLK or WHT)
         in path of piece movement (E or W)
         """
+        board = self.get_game_board()
+        stone_count = {'B': self._blk_stones_left, 'W': self._wht_stones_left}
 
-        for row in range(row-1, row+2):
-            for col in range(beg_col, end_col):
-                
-                if col == 0 or col == 19:       
-                    if self.get_game_board()[row][start_col] == 'B':
-                        self._blk_stones_left -= 1
-                    if self.get_game_board()[row][start_col] == 'W':
-                        self._wht_stones_left -= 1
-                             
-                if self.get_game_board()[row][col] == 'B':
-                    self._blk_stones_left -= 1
-                    self.get_game_board()[row][col] = ''
-                                
-                if self.get_game_board()[row][col] == 'W':
-                    self._wht_stones_left -= 1
-                    self.get_game_board()[row][col] = ''
-                
+        for r in range(row - 1, row + 2):
+            for c in range(beg_col, end_col):
+                if c in (0, 19):
+                    stone = board[r][start_col]
                 else:
-                    continue
-                
-        return self.get_game_board()
-    
-    
+                    stone = board[r][c]
+                if stone in stone_count:
+                    stone_count[stone] -= 1
+                    board[r][c] = ''
+
+        return board
+
+    def determine_move_direction(self, fr_row, to_row, fr_col, to_col, row, col):
+        """
+        Returns diagonal direction piece will move
+        """
+        dir, out = None, None
+        if fr_row > to_row:
+            dir = self.move_nw if fr_col > to_col else self.move_ne
+            out = dir(fr_row, fr_col)
+        elif fr_row < to_row:
+            dir = self.move_sw if fr_col > to_col else self.move_se
+            out = dir(fr_row, fr_col)
+        return dir(row, col), out
+
+
     def remove_captured_stones_diag(self, fr_row, to_row, fr_col, to_col, 
         row, col):
         """
@@ -327,21 +287,8 @@ class GessGame:
         """
         check_sq = {}
 
-        if fr_row > to_row and fr_col > to_col:
-            dir = self.move_nw(row,col)
-            out = self.move_nw(fr_row,fr_col)
-       
-        if fr_row > to_row and fr_col < to_col:
-            dir = self.move_ne(row,col)
-            out = self.move_ne(fr_row,fr_col)
-
-        if fr_row < to_row and fr_col > to_col:
-            dir =self.move_sw(row,col)
-            out = self.move_sw(fr_row,fr_col)
-
-        if fr_row < to_row and fr_col < to_col:
-            dir = self.move_se(row,col)
-            out = self.move_se(fr_row,fr_col) 
+        dir,out = self.determine_move_direction(self, fr_row, to_row, fr_col, to_col, 
+        row, col)     
 
         check_sq['sq_1'] = self._board[dir['start_row']][dir['start_col']]
         check_sq['sq_2'] = self._board[dir['r_1']][dir['c_1']]
@@ -349,55 +296,11 @@ class GessGame:
         check_sq['sq_4'] = self._board[dir['r_4']][dir['c_4']]
         check_sq['sq_5'] = self._board[dir['r_5']][dir['c_5']]
 
-        if self._board[out['start_row']][out['start_col']] == 'B':
-            if dir['start_row'] == 0 or dir['start_row'] == 19 or \
-                dir['start_col'] == 0 or dir['start_col'] == 19:
-                self._blk_stones_left -=1
-
-        if self._board[out['r_2']][out['c_2']] == 'B':
-            if dir['r_2'] == 0 or dir['r_2'] == 19 or \
-                dir['c_2'] == 0 or dir['c_2'] == 19:
-                self._blk_stones_left -=1
-
-        if self._board[out['r_1']][out['c_1']] == 'B':
-            if dir['r_1'] == 0 or dir['r_1'] == 19 or \
-                dir['c_1'] == 0 or dir['c_1'] == 19:
-                self._blk_stones_left -=1
-
-        if self._board[out['r_4']][out['c_4']] == 'B':
-            if dir['r_4'] == 0 or dir['r_4'] == 19 or \
-                dir['c_4'] == 0 or dir['c_4'] == 19:
-                self._blk_stones_left -=1
-
-        if self._board[out['r_5']][out['c_5']] == 'B':
-            if dir['r_5'] == 0 or dir['r_5'] == 19 or \
-                dir['c_5'] == 0 or dir['c_5'] == 19:
-                self._blk_stones_left -=1
-
-        if self._board[out['start_row']][out['start_col']] == 'W':
-            if dir['start_row'] == 0 or dir['start_row'] == 19 or \
-                dir['start_col'] == 0 or dir['start_col'] == 19:
-                self._wht_stones_left -=1
-
-        if self._board[out['r_2']][out['c_2']] == 'W':
-            if dir['r_2'] == 0 or dir['r_2'] == 19 or \
-                dir['c_2'] == 0 or dir['c_2'] == 19:
-                self._wht_stones_left -=1
-
-        if self._board[out['r_1']][out['c_1']] == 'W':
-            if dir['r_1'] == 0 or dir['r_1'] == 19 or \
-                dir['c_1'] == 0 or dir['c_1'] == 19:
-                self._wht_stones_left -=1
-
-        if self._board[out['r_4']][out['c_4']] == 'W':
-            if dir['r_4'] == 0 or dir['r_4'] == 19 or \
-                dir['c_4'] == 0 or dir['c_4'] == 19:
-                self._wht_stones_left -=1
-
-        if self._board[out['r_5']][out['c_5']] == 'W':
-            if dir['r_5'] == 0 or dir['r_5'] == 19 or \
-                dir['c_5'] == 0 or dir['c_5'] == 19:
-                self._wht_stones_left -=1
+        for r, c in [('start_row', 'start_col'), ('r_2', 'c_2'), ('r_1', 'c_1'), ('r_4', 'c_4'), ('r_5', 'c_5')]:
+            if self._board[out[r]][out[c]] == 'B' and (dir[r] in (0, 19) or dir[c] in (0, 19)):
+                self._blk_stones_left -= 1
+            elif self._board[out[r]][out[c]] == 'W' and (dir[r] in (0, 19) or dir[c] in (0, 19)):
+                self._wht_stones_left -= 1
             
         for sq in check_sq:
             
@@ -423,9 +326,6 @@ class GessGame:
         piece either North or South if move is valid.
         """
 
-        # if stone in N or S position
-        # if board[fr_row+1][fr_col] != '' or board[fr_row-1][fr_col] != '':
-                    
         # window = 3 if fr_square is empty or 16 if not      
         if 1 <= abs(to_row-fr_row) <= window:
 
@@ -434,6 +334,7 @@ class GessGame:
             ptr = start_row 
 
             while ptr != to_row: # until destination reached
+                
                 if fr_row > to_row and board[fr_row-1][fr_col] != '':  # move N
                     ptr -= 1  # 1st row beyond piece
                     final_row = ptr+1
@@ -480,7 +381,7 @@ class GessGame:
                         else:
                             self.remove_captured_stones_vert(start_row, ptr-1, ptr+1, j)
                         
-                        # finalize move
+                        # update board positions with new piece 
                         self.update_board(fr_row, fr_col, to_row, to_col)
                         return True
             
@@ -497,7 +398,7 @@ class GessGame:
             # movement not vertical
             return False
         
-        
+
     def move_horiz(self, fr_row, fr_col, to_row, to_col, board, start_col, window):
         """
         Takes in strings representing coordinates of starting
@@ -505,275 +406,199 @@ class GessGame:
         piece either East or West if move is valid.
         """
 
-        # if stone in W or E position
-        if board[fr_row][fr_col-1] != '' or  board[fr_row][fr_col+1] != '':
-                        
-            # valid move if within range        
-            if 1 <= abs(to_col-fr_col) <= window and fr_row == to_row:
+        # check if there is a stone in W or E position
+        if any(board[fr_row][c] for c in (fr_col-1, fr_col+1)):
+            
+            # check if move is within range and in the same row
+            if abs(to_col - fr_col) in range(1, window+1) and to_row == fr_row:
 
-                # ptr tracks if stone is in path of move
-                # starts at 1st column from starting square
-                j = start_col
+                # determine direction of move
+                direction = 1 if to_col > fr_col else -1
 
-                while j != to_col:
-                    # move W
-                    if fr_col > to_col and board[fr_row][fr_col-1] != '':
-                        j -= 1
-                        final_col = j+1
-                        dir = 'W'
-                        beg_col = j
-                        end_col = j-1
-                    # move E
-                    if fr_col < to_col and board[fr_row][fr_col+1] != '':
-                        j += 1
-                        final_col = j-1
-                        dir = 'E'
-                        beg_col = j
-                        end_col = j+1
-
-                    for i in range(fr_row-1,fr_row+2):
-                        if  to_col == start_col and to_row == fr_row:
-                            # then stop; remove overlapped stones
-                            self.remove_captured_stones_horiz(start_col, i, beg_col, end_col)
-                            
-                            # finalize move
-                            self.update_board(fr_row, fr_col, to_row, to_col)
-                            return   
-
-                        # if stone(s) in path, then stop; remove 
-                        # overlapped stones; and finalize move 
-                        if board[i][j] != '':
-                            # then stop; remove overlapped stones
-                            self.remove_captured_stones_horiz(start_col, i, beg_col, end_col)
-                            
-                            # finalize move
-                            self.update_board(fr_row, fr_col, final_col,to_col)
-                            return True
-
-                        # finalize move if destination reached  
-                        if  to_row == i and to_col == j:
-
-                            if dir == 'E':
-
-                                # then stop; remove overlapped stones; 
-                                self.remove_captured_stones_horiz(start_col, i, j, j+2)
-
-                            else:
-                                self.remove_captured_stones_horiz(start_col, i, j, j-2)
-                                                        
-                            # finalize move
-                            self.update_board(fr_row, fr_col, to_row, to_col)
-                            return True
-                # If move is E
-                if fr_col > to_col:
-                    # Stop; remove overlapped stones
-                    self.remove_captured_stones_horiz(start_col, fr_row, j-1, j)
-                # Else move is W; Remove overlapped stones
-                else: 
-                    self.remove_captured_stones_horiz(start_col, fr_row, j+1, j+2)
-
-                # finalize move if moving 1 space from origin
-                self.update_board( fr_row, fr_col, to_row, to_col)
+                # check if any stones are in the way
+                for col in range(fr_col + direction, to_col + direction, direction):
+                    if board[fr_row][col] != '':
+                        self.remove_captured_stones_horiz(start_col, fr_row, fr_col + direction, col - direction)
+                        self.update_board(fr_row, fr_col, fr_row, col - direction)
+                        return True
+                
+                # remove overlapped stones and make the move
+                self.remove_captured_stones_horiz(start_col, fr_row, to_col, fr_col + direction)
+                self.update_board(fr_row, fr_col, to_row, to_col)
                 return True
+                
         return False
+
         
- 
-    def move_nw(self, row,col):
-        nw = {}
+    def move_nw(self, row, col):
+        """
+        Returns a dictionary containing the coordinates of the 
+        spaces to which a piece can move in the northeast direction
+        from the given row and column.
+        """
+        return {
+            'start_row': row - 1,
+            'start_col': col - 1,
+            'final_row': row,
+            'final_col': col,
+            'r_1': row,
+            'c_1': col + 1,
+            'r_2': row,
+            'c_2': col + 2,
+            'r_4': row + 1,
+            'c_4': col,
+            'r_5': row + 2,
+            'c_5': col
+        }
+
+
+    def move_ne(self, row, col):
+        """
+        Returns a dictionary containing the coordinates of the 
+        spaces to which a piece can move in the northeast direction
+        from the given row and column.
+        """
         row -= 1
-        nw['final_row'] = row+1
-        col -= 1
-        nw['final_col'] = col+1
-        nw['start_row'], nw['start_col'] = row, col
-        nw['r_1'], nw['c_1'] = row, col+1
-        nw['r_2'], nw['c_2'] = row, col+2
-        nw['r_4'], nw['c_4'] = row+1, col
-        nw['r_5'], nw['c_5'] = row+2, col
-
-        return nw
-    
-
-    def move_ne(self, row,col):
-        ne = {}
-        row -= 1
-
-        ne['final_row'] = row+1
         col += 1
-        ne['final_col'] = col-1
-        ne['start_row'], ne['start_col'] = row, col
-        ne['r_1'], ne['c_1'] = row, col-2
-        ne['r_2'], ne['c_2'] = row, col-1
-        ne['r_4'], ne['c_4'] = row+1, col
-        ne['r_5'], ne['c_5'] = row+2, col 
+        return {
+            'start_row': row,
+            'start_col': col,
+            'final_row': row + 1,
+            'final_col': col - 1,
+            'r_1': row,
+            'c_1': col - 2,
+            'r_2': row,
+            'c_2': col - 1,
+            'r_4': row + 1,
+            'c_4': col,
+            'r_5': row + 2,
+            'c_5': col
+        }
 
-        return ne
+    
+    def move_se(self, row, col):
+        """
+        Returns a dictionary containing the coordinates of the 
+        spaces to which a piece can move in the southeast direction
+        from the given row and column.
+        """
+        row, col = row + 1, col + 1
+        return {
+            'start_row': row,
+            'start_col': col,
+            'final_row': row - 1,
+            'final_col': col - 1,
+            'r_1': row,
+            'c_1': col - 2,
+            'r_2': row,
+            'c_2': col - 1,
+            'r_4': row - 1,
+            'c_4': col,
+            'r_5': row - 2,
+            'c_5': col
+        }
     
 
-    def move_se(self, row,col):
-        se = {}
-        row += 1
-        se['final_row'] = row-1
-        col += 1
-        se['final_col'] = col-1
-        se['start_row'], se['start_col'] = row, col
-        se['r_1'], se['c_1'] = row, col-2
-        se['r_2'], se['c_2'] = row, col-1
-        se['r_4'], se['c_4'] = row-1, col
-        se['r_5'], se['c_5'] = row-2, col
+    def move_sw(self, row, col):
+        """
+        Returns a dictionary containing the coordinates of the spaces 
+        to which a piece can move in the southwest direction from the 
+        given row and column.
+        """
+        row, col = row + 1, col - 1
+        return {
+            'start_row': row,
+            'start_col': col,
+            'final_row': row - 1,
+            'final_col': col + 1,
+            'r_1': row,
+            'c_1': col + 2,
+            'r_2': row,
+            'c_2': col + 1,
+            'r_4': row - 1,
+            'c_4': col,
+            'r_5': row - 2,
+            'c_5': col
+        }
 
-        return se
+
+    def determine_diagonal_move_direction(self, fr_row, fr_col, to_row, to_col):
+        """
+        Returns map of the direction.
+        """
+        moves = { (True, True): self.move_nw,
+                (True, False): self.move_ne,
+                (False, False): self.move_se,
+                (False, True): self.move_sw }
+        
+        direction = moves[(fr_row > to_row, fr_col > to_col)]
+        return direction
     
 
-    def move_sw(self, row,col):
-        sw = {}
-        row += 1
-        sw['final_row'] = row-1
-        col -= 1
-        sw['final_col'] = col+1
-        sw['start_row'], sw['start_col'] = row, col
-        sw['r_1'], sw['c_1'] = row, col+2
-        sw['r_2'], sw['c_2'] = row, col+1
-        sw['r_4'], sw['c_4'] = row-1, col
-        sw['r_5'], sw['c_5'] = row-2, col
-
-        return sw
-                       
-                       
     def move_diag(self, fr_row, fr_col, to_row, to_col, board, start_row, start_col):
         """
-        Takes in strings representing coordinates of starting
-        and destination squares and current board state. Moves
-        piece either SW, SE, NW, or NE if move is valid.
+        Move a piece if valid coordinates and board state are given.
         """
-        # if stone in SW, SE, NE, or NW position
-        if board[fr_row-1][fr_col-1] or board[fr_row-1][fr_col+1] or board[fr_row+1][fr_col+1] or \
-           board[fr_row+1][fr_col-1] != '':
-                        
-            # valid move if within range          
+
+        # check if piece is in SW, SE, NE, or NW position
+        if any(board[r][c] for r, c in [(fr_row-1, fr_col-1), (fr_row-1, fr_col+1), \
+                (fr_row+1, fr_col+1), (fr_row+1, fr_col-1)]):
+                            
+            # check if move is diagonal
             if abs(to_col - fr_col) == abs(to_row - fr_row):
-
-                i, j = start_row, start_col
                 
-                while i != to_row and j != to_col:
+                direction = self.determine_diagonal_move_direction()
 
-                    # move nw
-                    if fr_row > to_row and fr_col > to_col:
-                        dir = self.move_nw(i,j)
-                        i -= 1
-                        j -= 1
-                        
-                    # move ne                    
-                    if fr_row > to_row and fr_col < to_col:
-                        dir = self.move_ne(i,j)
-                        i -= 1
-                        j += 1
-                                              
-                    # move se
-                    if fr_row < to_row and fr_col < to_col:
-                        dir = self.move_se(i,j)
-                        i += 1
-                        j += 1
+                # check if move is valid and update board
+                move = direction(start_row, start_col)
 
-                    # move sw
-                    if fr_row < to_row and fr_col > to_col:
-                        dir = self.move_sw(i,j)
-                        i += 1
-                        j -= 1
-                         
-                    if board[dir['start_row']][dir['start_col']] or board[dir['r_1']][dir['c_1']] or \ 
-                       board[dir['r_2']][dir['c_2']] or board[dir['r_4']][dir['c_4']] or \
-                       board[dir['r_5']][dir['c_5']] != '':
-                        self.remove_captured_stones_diag(fr_row, to_row, fr_col, to_col, i,j)
-                        self.update_board(fr_row, fr_col, dir['final_row'], dir['final_col'])
-                        return True
-                    
-                    if i == to_row and j == to_col:
-                        self.remove_captured_stones_diag(fr_row, to_row, fr_col, to_col, i, j)
-                        self.update_board(fr_row, fr_col, i, j)
-                        return True
-                
-                self.remove_captured_stones_diag(fr_row, to_row, fr_col, to_col, i, j)
-                self.update_board(fr_row, fr_col, i, j)  
+            if all(board[r][c] == '' for r, c in [(move['start_row'], move['start_col']), (move['r_1'], move['c_1']),
+                                       (move['r_2'], move['c_2']), (move['r_4'], move['c_4']), (move['r_5'], move['c_5'])]):
+                self.remove_captured_stones_diag(fr_row, to_row, fr_col, to_col, move['final_row'], move['final_col'])
+                self.update_board(fr_row, fr_col, move['final_row'], move['final_col'])
                 return True
 
-        return False  
-    
+        return False
+
 
     def get_allowable_range_for_move(self, fr_row, fr_col, board):
         """
         Check if center of piece has stone. 
         Return max allowable range for move.
         """
+        return 3 if not board[fr_row][fr_col] else 16
 
-        # if no stone, max move = 3 spaces  
-        if board[fr_row][fr_col] == '':   
-            window = 3  
-
-        # if stone, max move = 16 spaces
-        elif board[fr_row][fr_col] != '':
-            window = 16
-        
-        return window
     
-    def set_move_vert_direction(self, fr_row, to_row):
+    def set_move_direction(self, fr, to):
         """
-        Dertermine direction of vertical movement.  
-        Return starting row for tracking piece movement.
+        Determines the direction of movement and 
+        returns the starting index for tracking piece movement.
         """
-        start_row = None 
-        
-        # prepare S move 
-        if fr_row < to_row:
-            start_row = fr_row+1
+        if fr < to:
+            return fr + 1
+        elif fr > to:
+            return fr - 1
+        else:
+            return None
 
-        # prepare N move 
-        if fr_row > to_row:
-            start_row = fr_row-1
-        
-        return start_row
-    
-
-    def set_move_horiz_direction(self, fr_col, to_col):
-        """
-        Dertermine direction of horizontal movement.  
-        Return starting row for tracking piece movement.
-        """
-        start_col = None
-        # prepare E move,
-        if fr_col < to_col:
-            start_col = fr_col+1 
-
-        # prepare W move
-        if fr_col > to_col:
-            start_col =fr_col-1 
-        
-        return start_col
 
     def prepare_move(self, fr_row, fr_col, to_row, to_col, board):
         """
         Determine movement limits and direction.
         Move piece in given direction.
         """
-
         window = self.get_allowable_range_for_move(fr_row, fr_col, board)
-        start_row = self.set_move_vert_direction(fr_row, to_row)
-        start_col = self.set_move_horiz_direction(fr_col, to_col)
-       
-        # can move N or S
-        if fr_col == to_col:
-            if self.move_vert(fr_row, fr_col, to_row, to_col, board, start_row, window):
-                return True
+        start_row = self.set_move_direction(fr_row, to_row)
+        start_col = self.set_move_direction(fr_col, to_col)
 
-        # can move E or W
-        elif fr_row == to_row:
-            if self.move_horiz(fr_row, fr_col, to_row, to_col, board, start_col, window):
-                return True
+        if fr_col == to_col:  # can move N or S
+            return self.move_vert(fr_row, fr_col, to_row, to_col, board, start_row, window)
 
-        # can move NW, NE, SW or SE
-        elif self.move_diag(fr_row, fr_col, to_row, to_col, board, start_row, start_col):
-            return True
+        elif fr_row == to_row:  # can move E or W
+            return self.move_horiz(fr_row, fr_col, to_row, to_col, board, start_col, window)
 
-        return False
+        else:  # can move NW, NE, SW or SE
+            return self.move_diag(fr_row, fr_col, to_row, to_col, board, start_row, start_col)
     
 
     def check_for_ring(self):
@@ -841,35 +666,24 @@ class GessGame:
 
     def track_pc_count(self):
         """
-        Tracks the count of black and white stones
-        on board.
+        Tracks the count of black and white stones on board.
         """
-        # set counters to 0 for each player
-        self._blk_stones_left = 0
-        self._wht_stones_left = 0
-
-        for i in self.get_game_board():
-            for j in i:
-                if j == 'B':
-                    self._blk_stones_left += 1
-                elif j == 'W':
-                    self._wht_stones_left += 1
-                else:
-                    pass
+        self._blk_stones_left = sum(row.count('B') for row in self.get_game_board())
+        self._wht_stones_left = sum(row.count('W') for row in self.get_game_board())
+        
         return self._blk_stones_left, self._wht_stones_left
 
 
     def make_move(self, fr_square, to_square):
         """
-        Takes in strings that represent the starting and desired
-        destination square for move.  Makes the move, if valid,
-        updates game to reflect the move. 
+        Update game by moving a piece from the provided starting 
+        square to the destination square if valid.
         """
-       
-       # starting and destination coords. conversion to int
-        fr_col, fr_row  = self._alpha_to[fr_square[0].lower()], int(fr_square[1:]) - 1
-        to_col , to_row = self._alpha_to[to_square[0].lower()], int(to_square[1:]) - 1
-        
+
+        # starting and destination coords. conversion to int
+        fr_col, fr_row = self._alpha_to[fr_square[0].lower()], int(fr_square[1:]) - 1
+        to_col, to_row = self._alpha_to[to_square[0].lower()], int(to_square[1:]) - 1
+
         self.set_ftprint(fr_row, fr_col)
 
         # check move validity - move if legal
@@ -877,37 +691,29 @@ class GessGame:
             print("Illegal move. Try again.")
             return False
 
-        # continue if game has not been won
-        # otherwise, stop and return False
+        # continue if game has not been won, otherwise stop and return False
         if self.get_game_state() != 'UNFINISHED':
             print("Game over.", self.get_game_state())
             return False
 
-        # set move based on position of stones in footprint:
-
+        # set move based on position of stones in footprint
         if self.prepare_move(fr_row, fr_col, to_row, to_col, self.get_game_board()):
-        
+
             # check if rings are on board
             self.check_for_ring()
 
-            # if player BLK has no rings, WHT player wins
+            # set game state based on ring count
             if self._blk_rings_left == 0:
                 self._current_state = 'WHITE WON'
-                print(self.get_game_state())
-
-            # if player WHT has no rings, BLK player wins
             elif self._wht_rings_left == 0:
                 self._current_state = 'BLACK WON'
-                print(self.get_game_state())
-
-            else:
-                pass
 
             # update player and set previous move
-            self._prev_move = self._player_to_move
-            self._player_to_move = self._other_player
-            self._other_player = self._prev_move
-            return True       
+            self._prev_move, self._player_to_move, self._other_player = \
+                self._player_to_move, self._other_player, self._prev_move
+
+            return True
+
         return False
 
 
@@ -915,25 +721,16 @@ class GessGame:
         """
         Quit. Give other player the win.
         """
-        quit = str(input('Would you like to quit the game (Y or N)?'))
-
-        if quit.lower() == 'y':
-
-            if self._player_to_move == 'B':
-                self._current_state = 'WHITE WON'
-                print(self._current_state)
-                return True
-
-            elif self._player_to_move == 'W':
-                self._current_state = 'BLACK WON'
-                print(self._current_state)
-                return True
+        quit = input('Would you like to quit the game (Y or N)?').lower()
+        
+        if quit == 'y':
+            self._current_state = 'WHITE WON' if self._player_to_move == 'B' \
+                else 'BLACK WON'
+            print(self._current_state)
+            return True
         return False
 
 
     def print_board(self):
-        """
-        Visualization of gameboard.
-        """
-        for i in self._board:
-            print(i)
+        """Visualization of gameboard."""
+        print(*self._board, sep="\n")
